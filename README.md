@@ -86,7 +86,7 @@ Output:
 ```
 
 ### Formatting an Error Response
-```php
+``
 use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
 
 return ResponseFormatter::error('Invalid input', 400, ['field' => 'required']);

@@ -1,19 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Giatechindo\HypervelResponseFormatter\Middleware;
 
-use Closure;
 use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Hyperf\HttpServer\Contract\ResponseInterface as HyperfResponse;
 
 class FormatResponseMiddleware
 {
-    public function handle($request, Closure $next)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $response = $next($request);
+        $response = $handler->handle($request);
 
-        // Only format if response is not already formatted
-        if (!is_array($response) || !isset($response['status'])) {
-            $response = ResponseFormatter::success($response);
+        // Cek apakah respons sudah dalam format yang diinginkan
+        $content = $response->getBody()->getContents();
+        $data = json_decode($content, true);
+
+        if (!is_array($data) || !isset($data['status'])) {
+            // Jika belum diformat, ubah ke format success
+            return ResponseFormatter::success($data ?: [], 'Success', $response->getStatusCode());
         }
 
         return $response;
