@@ -19,14 +19,34 @@ A simple and reusable package to standardize API response formats in Hypervel fr
    composer require giatechindo/hypervel-response-formatter
    ```
 
-2. Publish the configuration file (optional):
+2. Copy the configuration file manually to your project's `config/` directory:
    ```bash
-   php hypervel config:publish response-formatter
+   cp vendor/giatechindo/hypervel-response-formatter/config/response-formatter.php config/
+   ```
+   If the file does not exist, create `config/response-formatter.php` with the following content:
+   ```php
+   <?php
+
+   return [
+       'status_success' => 'success',
+       'status_error' => 'error',
+       'case_style' => 'camelCase',
+   ];
    ```
 
-3. Register the middleware in your Hypervel application (e.g., in `app/Http/Kernel.php`):
+3. Initialize the package in your application (e.g., in `app/Providers/AppServiceProvider.php`):
    ```php
-   protected $middleware = [
+   use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
+
+   public function boot()
+   {
+       ResponseFormatter::init(config('response-formatter'));
+   }
+   ```
+
+4. Register the middleware in your Hypervel application (e.g., in `app/Http/Kernel.php`):
+   ```php
+   protected array $middleware = [
        \Giatechindo\HypervelResponseFormatter\Middleware\FormatResponseMiddleware::class,
    ];
    ```
