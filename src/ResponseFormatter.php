@@ -1,49 +1,47 @@
 <?php
-
-declare(strict_types=1);
-
 namespace Giatechindo\HypervelResponseFormatter;
 
 use Hyperf\HttpServer\Contract\ResponseInterface;
-use Hyperf\Utils\ApplicationContext;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 class ResponseFormatter
 {
-    protected static $config;
+    public function __construct(protected ResponseInterface $response)
+    {}
 
-    public static function init(array $config)
-    {
-        self::$config = $config;
-    }
-
-    public static function success($data, string $message = 'Success', int $code = 200): PsrResponseInterface
-    {
-        $responseData = [
-            'status' => self::$config['status_success'] ?? 'success',
-            'code' => $code,
+    public function success(
+        mixed $data = null,
+        string $message = 'Success',
+        int $statusCode = 200
+    ): PsrResponseInterface {
+        return $this->formatResponse([
+            'success' => true,
             'message' => $message,
-            'data' => $data,
-        ];
-
-        return self::jsonResponse($responseData, $code);
+            'data'    => $data,
+        ], $statusCode);
     }
 
-    public static function error(string $message, int $code = 400, $errors = []): PsrResponseInterface
-    {
-        $responseData = [
-            'status' => self::$config['status_error'] ?? 'error',
-            'code' => $code,
+    public function error(
+        string $message = 'Error',
+        mixed $errors = null,
+        int $statusCode = 400
+    ): PsrResponseInterface {
+        $response = [
+            'success' => false,
             'message' => $message,
-            'errors' => $errors,
         ];
-
-        return self::jsonResponse($responseData, $code);
+    
+        if ($errors !== null) {
+            $response['errors'] = $errors;
+        }
+    
+        return $this->formatResponse($response, $statusCode);
     }
 
-    protected static function jsonResponse(array $data, int $status): PsrResponseInterface
+    protected function formatResponse(array $response, int $statusCode): PsrResponseInterface
     {
-        $response = ApplicationContext::getContainer()->get(ResponseInterface::class);
-        return $response->json($data)->withStatus($status);
+        // Remove null values from response
+        $response = array_filter($response, fn($value) => $value !== null);
+        return $this->response->json($response)->withStatus($statusCode);
     }
 }

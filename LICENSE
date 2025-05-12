@@ -1,21 +1,33 @@
-MIT License
 
-Copyright (c) 2025 Giatechindo Community
+## Key Features
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. **Standardized Response Format**: Consistent JSON structure for all API responses
+2. **Macro Integration**: Extends Hypervel's Response with `success()` and `error()` methods
+3. **Type Safety**: Strict type hints and return types
+4. **Test Coverage**: Comprehensive unit tests
+5. **Clean Code**: Minimal code with clear responsibilities
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Usage Examples
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+In your controllers:
+
+```php
+public function index()
+{
+    $data = ['items' => []];
+    return response()->success($data);
+}
+
+public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'required',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->error('Validation failed', $validator->errors(), 422);
+    }
+
+    // ... save logic
+    return response()->success(null, 'Item created', 201);
+}
