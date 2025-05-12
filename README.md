@@ -14,6 +14,9 @@ Standardized API response formatter for Hypervel framework with PCOV coverage su
 - Built-in test coverage support
 - IDE-friendly method chaining
 
+- Testing di Project
+- `https://github.com/Giatechindo/hypervel-testing`
+
 ## Installation
 
 ```bash
