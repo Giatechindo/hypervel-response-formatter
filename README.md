@@ -23,6 +23,13 @@ Standardized API response formatter for Hypervel framework with PCOV coverage su
 composer require giatechindo/hypervel-response-formatter
 ```
 
+## 📺 Playlist
+
+Berikut adalah playlist video pembelajaran yang dapat Anda ikuti:
+
+🔗 [Klik di sini untuk membuka playlist di YouTube](https://www.youtube.com/playlist?list=PLusb1og4k-lp4W-XTA_u_wuhqRrmRugiJ)
+
+
 ## Configuration
 
 The package auto-registers itself. For manual configuration:
