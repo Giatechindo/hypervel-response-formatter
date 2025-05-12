@@ -40,14 +40,29 @@ return [
 ### Basic Responses
 
 ```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 
 class UserController
 {
     public function index(ResponseInterface $response)
     {
-        $users = User::all();
-        return $response->success($users);
+        $users = [
+            ['id' => 1, 'name' => 'John'],
+            ['id' => 2, 'name' => 'Jane'],
+        ];
+        return (new ResponseFormatter($response))->success($users, 'Users retrieved successfully', 200);
+    }
+
+    public function show(ResponseInterface $response)
+    {
+        return (new ResponseFormatter($response))->error('User not found', ['id' => 'Invalid ID'], 404);
     }
 }
 ```
