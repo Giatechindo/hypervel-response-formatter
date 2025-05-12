@@ -1,68 +1,90 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Giatechindo\HypervelResponseFormatter\Tests;
 
 use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
 use Hyperf\HttpServer\Contract\ResponseInterface;
-use Hyperf\Utils\ApplicationContext;
 use PHPUnit\Framework\TestCase;
-use Mockery;
+use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
 class ResponseFormatterTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        ResponseFormatter::init(['status_success' => 'ok', 'status_error' => 'fail']);
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
-    }
-
     public function testSuccessResponse()
     {
-        $mockResponse = Mockery::mock(ResponseInterface::class);
-        $mockResponse->shouldReceive('json')
-            ->with([
-                'status' => 'ok',
-                'code' => 200,
-                'message' => 'Data retrieved',
-                'data' => ['id' => 1],
-            ])
-            ->andReturnSelf();
-        $mockResponse->shouldReceive('withStatus')->with(200)->andReturnSelf();
+        $mockResponse = $this->createMock(ResponseInterface::class);
+        $mockPsrResponse = $this->createMock(PsrResponseInterface::class);
 
-        $container = Mockery::mock('Hyperf\Contract\ContainerInterface');
-        $container->shouldReceive('get')->with(ResponseInterface::class)->andReturn($mockResponse);
-        ApplicationContext::setContainer($container);
+        $expectedResponse = [
+            'success' => true,
+            'message' => 'Test success',
+            'data' => ['key' => 'value'],
+        ];
 
-        $response = ResponseFormatter::success(['id' => 1], 'Data retrieved', 200);
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $mockResponse->expects($this->once())
+            ->method('json')
+            ->with($expectedResponse)
+            ->willReturn($mockPsrResponse);
+
+        $mockPsrResponse->expects($this->once())
+            ->method('withStatus')
+            ->with(200)
+            ->willReturnSelf();
+
+        $formatter = new ResponseFormatter($mockResponse);
+        $result = $formatter->success(['key' => 'value'], 'Test success');
+
+        $this->assertInstanceOf(PsrResponseInterface::class, $result);
     }
 
     public function testErrorResponse()
     {
-        $mockResponse = Mockery::mock(ResponseInterface::class);
-        $mockResponse->shouldReceive('json')
+        $mockResponse = $this->createMock(ResponseInterface::class);
+        $mockPsrResponse = $this->createMock(PsrResponseInterface::class);
+
+        $expectedResponse = [
+            'success' => false,
+            'message' => 'Test error',
+            'errors' => ['field' => 'Error message'],
+        ];
+
+        $mockResponse->expects($this->once())
+            ->method('json')
+            ->with($expectedResponse)
+            ->willReturn($mockPsrResponse);
+
+        $mockPsrResponse->expects($this->once())
+            ->method('withStatus')
+            ->with(400)
+            ->willReturnSelf();
+
+        $formatter = new ResponseFormatter($mockResponse);
+        $result = $formatter->error('Test error', ['field' => 'Error message']);
+
+        $this->assertInstanceOf(PsrResponseInterface::class, $result);
+    }
+
+    public function testErrorResponseWithoutErrors()
+    {
+        $mockResponse = $this->createMock(ResponseInterface::class);
+        $mockPsrResponse = $this->createMock(PsrResponseInterface::class);
+    
+        $mockResponse->expects($this->once())
+            ->method('json')
             ->with([
-                'status' => 'fail',
-                'code' => 400,
-                'message' => 'Invalid input',
-                'errors' => ['field' => 'required'],
+                'success' => false,
+                'message' => 'Test error',
             ])
-            ->andReturnSelf();
-        $mockResponse->shouldReceive('withStatus')->with(400)->andReturnSelf();
-
-        $container = Mockery::mock('Hyperf\Contract\ContainerInterface');
-        $container->shouldReceive('get')->with(ResponseInterface::class)->andReturn($mockResponse);
-        ApplicationContext::setContainer($container);
-
-        $response = ResponseFormatter::error('Invalid input', 400, ['field' => 'required']);
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+            ->willReturn($mockPsrResponse);
+    
+        $mockPsrResponse->expects($this->once())
+            ->method('withStatus')
+            ->with(400)
+            ->willReturnSelf();
+    
+        $formatter = new ResponseFormatter($mockResponse);
+        $result = $formatter->error('Test error');
+    
+        $this->assertInstanceOf(PsrResponseInterface::class, $result);
+        $this->assertSame($mockPsrResponse, $result);
     }
 }

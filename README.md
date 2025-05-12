@@ -1,83 +1,73 @@
 # Hypervel Response Formatter
 
-A simple and reusable package to standardize API response formats in Hypervel framework applications. This package provides utilities to format success and error responses consistently, along with a middleware to automate response formatting.
+[![Latest Version](https://img.shields.io/packagist/v/giatechindo/hypervel-response-formatter.svg?style=flat-square)](https://packagist.org/packages/giatechindo/hypervel-response-formatter)
+[![Total Downloads](https://img.shields.io/packagist/dt/giatechindo/hypervel-response-formatter.svg?style=flat-square)](https://packagist.org/packages/giatechindo/hypervel-response-formatter)
+[![License](https://img.shields.io/packagist/l/giatechindo/hypervel-response-formatter.svg?style=flat-square)](https://packagist.org/packages/giatechindo/hypervel-response-formatter)
+
+Standardized API response formatter for Hypervel framework with PCOV coverage support.
 
 ## Features
-- Standardized JSON response structure for success and error cases.
-- Configurable status labels and case styles (camelCase or snake_case).
-- Middleware for automatic response formatting.
-- Clean, maintainable, and tested code.
 
-## Requirements
-- PHP >= 8.1
-- Hypervel framework
+- Consistent JSON response structure
+- Success and error response helpers
+- PSR-7 compatible responses
+- Built-in test coverage support
+- IDE-friendly method chaining
 
 ## Installation
 
-1. Install the package via Composer:
-   ```bash
-   composer require giatechindo/hypervel-response-formatter
-   ```
-
-2. Copy the configuration file manually to your project's `config/` directory:
-   ```bash
-   cp vendor/giatechindo/hypervel-response-formatter/config/response-formatter.php config/
-   ```
-   If the file does not exist, create `config/response-formatter.php` with the following content:
-   ```php
-   <?php
-
-   return [
-       'status_success' => 'success',
-       'status_error' => 'error',
-       'case_style' => 'camelCase',
-   ];
-   ```
-
-3. Initialize the package in your application (e.g., in `app/Providers/AppServiceProvider.php`):
-   ```php
-   use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
-
-   public function boot()
-   {
-       ResponseFormatter::init(config('response-formatter'));
-   }
-   ```
-
-4. Register the middleware in your Hypervel application (e.g., in `app/Http/Kernel.php`):
-   ```php
-   protected array $middleware = [
-       \Giatechindo\HypervelResponseFormatter\Middleware\FormatResponseMiddleware::class,
-   ];
-   ```
+```bash
+composer require giatechindo/hypervel-response-formatter
+```
 
 ## Configuration
 
-The configuration file is located at `config/response-formatter.php`. You can customize the following options:
+The package auto-registers itself. For manual configuration:
 
 ```php
+// config/autoload/dependencies.php
 return [
-    'status_success' => 'success', // Label for success responses
-    'status_error' => 'error',     // Label for error responses
-    'case_style' => 'camelCase',   // or 'snake_case'
+    'dependencies' => [
+        'invokables' => [
+            \Giatechindo\HypervelResponseFormatter\ResponseFormatter::class => \Giatechindo\HypervelResponseFormatter\ResponseFormatter::class,
+        ],
+    ],
 ];
 ```
 
 ## Usage
 
-### Formatting a Success Response
-```php
-use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
+### Basic Responses
 
-return ResponseFormatter::success(['id' => 1, 'name' => 'John'], 'Data retrieved', 200);
+```php
+use Hyperf\HttpServer\Contract\ResponseInterface;
+
+class UserController
+{
+    public function index(ResponseInterface $response)
+    {
+        $users = User::all();
+        return $response->success($users);
+    }
+}
 ```
 
-Output:
+### Success Response
+
+```php
+return response()->success(
+    data: ['id' => 1, 'name' => 'John'],
+    message: 'User retrieved', 
+    statusCode: 200
+);
+```
+
+Response:
+
 ```json
 {
-    "status": "success",
-    "code": 200,
-    "message": "Data retrieved",
+    "success": true,
+    "message": "User retrieved",
     "data": {
         "id": 1,
         "name": "John"
@@ -85,39 +75,115 @@ Output:
 }
 ```
 
-### Formatting an Error Response
-``
-use Giatechindo\HypervelResponseFormatter\ResponseFormatter;
+### Error Response
 
-return ResponseFormatter::error('Invalid input', 400, ['field' => 'required']);
+```php
+return response()->error(
+    message: 'Validation failed',
+    errors: ['email' => 'Invalid format'],
+    statusCode: 422
+);
 ```
 
-Output:
+Response:
+
 ```json
 {
-    "status": "error",
-    "code": 400,
-    "message": "Invalid input",
+    "success": false,
+    "message": "Validation failed",
     "errors": {
-        "field": "required"
+        "email": "Invalid format"
     }
 }
 ```
 
-### Using the Middleware
-When the middleware is registered, all responses will be automatically formatted as success responses unless they are already formatted.
+### Without Data/Errors
+
+```php
+return response()->success(message: 'Operation completed');
+return response()->error(message: 'Not found', statusCode: 404);
+```
+
+## Response Structure
+
+### Success
+
+```json
+{
+    "success": true,
+    "message": "string",
+    "data": {} // optional
+}
+```
+
+### Error
+
+```json
+{
+    "success": false,
+    "message": "string",
+    "errors": {} // optional
+}
+```
 
 ## Testing
 
-Run the unit tests using PHPUnit:
+```bash
+# Install PCOV for coverage (Ubuntu)
+sudo apt-get install php8.3-pcov
+
+# Run tests with coverage
+vendor/bin/phpunit --coverage-html coverage
+
+# View coverage report
+xdg-open coverage/index.html
+```
+
+## Development Setup
+
+Clone repository:
+
+```bash
+git clone git@github.com:Giatechindo/hypervel-response-formatter.git
+```
+
+Install dependencies:
+
+```bash
+composer install
+```
+
+Run tests:
+
 ```bash
 composer test
 ```
 
 ## Contributing
 
-Contributions are welcome! Please submit a pull request or open an issue on the [GitHub repository](https://github.com/giatechindo/hypervel-response-formatter).
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 
-This package is open-sourced under the [MIT License](LICENSE).
+MIT
+
+Giatechindo Community - [GitHub](https://github.com/Giatechindo) | [Packagist](https://packagist.org/packages/giatechindo/hypervel-response-formatter)
+
+## Download Options
+
+1. **Copy-paste** the above content into a new `README.md` file
+2. **Or** download directly using:
+
+```bash
+curl -o README.md https://gist.githubusercontent.com/raw/...  # Replace with actual URL if uploaded
+```
+
+This documentation includes:
+
+- All working features from our implementation
+- Installation instructions
+- Usage examples
+- Response structures
+- Testing setup with PCOV
+- Development guidelines
+- Contribution info
